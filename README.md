@@ -80,7 +80,7 @@ assert_eq!(map.motivation.value, 11);
 ```
 
 See [`crates/numancy/README.md`](crates/numancy/README.md) for the full library
-overview.
+overview
 
 ## Development
 

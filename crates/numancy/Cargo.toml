@@ -1,0 +1,23 @@
+[package]
+name = "numancy"
+description = "Numerology calculations (Pythagorean and Brazilian cabalistic) as a pure, dependency-free Rust library."
+documentation = "https://docs.rs/numancy"
+readme = "README.md"
+keywords = ["numerology", "pythagorean", "cabalistic", "esoteric", "numbers"]
+categories = ["mathematics", "algorithms"]
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[lib]
+name = "numancy"
+path = "src/lib.rs"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[lints]
+workspace = true

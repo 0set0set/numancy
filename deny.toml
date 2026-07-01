@@ -1,0 +1,15 @@
+# cargo-deny configuration. numancy is dependency-free, so these checks pass
+# trivially today; the config keeps supply-chain policy explicit for the future.
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Install stable toolchain
+        run: rustup toolchain install stable --profile minimal --component rustfmt
+      # Swatinem/rust-cache@v2.9.1
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        with:
+          cache-on-failure: true
+      - name: Check formatting
+        run: cargo +stable fmt --check
+
+  clippy:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Install stable toolchain
+        run: rustup toolchain install stable --profile minimal --component clippy
+      # Swatinem/rust-cache@v2.9.1
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        with:
+          cache-on-failure: true
+      - name: Run clippy
+        run: cargo +stable clippy --all-targets -- -D warnings
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Install stable toolchain
+        run: rustup toolchain install stable --profile minimal
+      # Swatinem/rust-cache@v2.9.1
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        with:
+          cache-on-failure: true
+      - name: Run tests
+        run: cargo +stable test
+
+  msrv:
+    name: MSRV
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Resolve and install MSRV toolchain
+        id: msrv
+        run: |
+          msrv="$(grep -m1 '^rust-version' Cargo.toml | sed -E 's/.*"([^"]+)".*/\1/')"
+          echo "version=${msrv}" >> "$GITHUB_OUTPUT"
+          rustup toolchain install "${msrv}" --profile minimal
+      # Swatinem/rust-cache@v2.9.1
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        with:
+          key: msrv-${{ steps.msrv.outputs.version }}
+          cache-on-failure: true
+      # MSRV is a guarantee about the published library. The CLI (with clap) may
+      # require a newer toolchain and is covered by the stable test/clippy jobs.
+      - name: Check the library against MSRV
+        run: cargo "+${{ steps.msrv.outputs.version }}" check -p numancy --all-targets
+
+  deny:
+    name: Supply chain
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      # EmbarkStudios/cargo-deny-action@v2.0.20
+      - uses: EmbarkStudios/cargo-deny-action@bb137d7af7e4fb67e5f82a49c4fce4fad40782fe
+        with:
+          command: check advisories bans sources

@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = ["crates/numancy", "crates/numancy-cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80.0"
+license = "Apache-2.0"
+repository = "https://github.com/0set0set/numancy"
+homepage = "https://github.com/0set0set/numancy"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
